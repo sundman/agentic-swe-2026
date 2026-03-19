@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic SWE 2026 — Course Navigator</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg-card: rgba(22, 27, 38, 0.85);
+    --bg-glass: rgba(30, 36, 50, 0.7);
+    --bg-detail: #161b26;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --text: #e2e8f0;
+    --text-dim: #8892a4;
+    --text-bright: #f8fafc;
+
+    --phase1: #3b82f6;
+    --phase1-glow: rgba(59,130,246,0.25);
+    --phase1-bg: rgba(59,130,246,0.08);
+    --phase2: #14b8a6;
+    --phase2-glow: rgba(20,184,166,0.25);
+    --phase2-bg: rgba(20,184,166,0.08);
+    --phase3: #a78bfa;
+    --phase3-glow: rgba(167,139,250,0.25);
+    --phase3-bg: rgba(167,139,250,0.08);
+
+    --thread-context: #60a5fa;
+    --thread-trust: #f87171;
+    --thread-orchestration: #34d399;
+    --thread-briefing: #fbbf24;
+
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ─── Header ────────────────────────────────── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,23,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    white-space: nowrap;
+    letter-spacing: -0.3px;
+  }
+
+  .header h1 span {
+    color: var(--phase1);
+    font-weight: 700;
+  }
+
+  .header-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+  }
+
+  /* ─── Filter Bar ────────────────────────────── */
+  .filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 2px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 2px;
+  }
+
+  .filter-btn {
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover {
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .filter-btn.active {
+    color: var(--text-bright);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .filter-btn[data-phase="1"].active { color: var(--phase1); background: var(--phase1-bg); }
+  .filter-btn[data-phase="2"].active { color: var(--phase2); background: var(--phase2-bg); }
+  .filter-btn[data-phase="3"].active { color: var(--phase3); background: var(--phase3-bg); }
+
+  .filter-btn[data-thread="context"].active { color: var(--thread-context); background: rgba(96,165,250,0.12); }
+  .filter-btn[data-thread="trust"].active { color: var(--thread-trust); background: rgba(248,113,113,0.12); }
+  .filter-btn[data-thread="orchestration"].active { color: var(--thread-orchestration); background: rgba(52,211,153,0.12); }
+  .filter-btn[data-thread="briefing"].active { color: var(--thread-briefing); background: rgba(251,191,36,0.12); }
+
+  .filter-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ─── Main Layout ───────────────────────────── */
+  .main-layout {
+    display: flex;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ─── Canvas Area ───────────────────────────── */
+  .canvas-area {
+    flex: 1;
+    padding: 32px 24px 48px;
+    overflow-y: auto;
+    transition: margin-right 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .canvas-area.detail-open {
+    margin-right: 420px;
+  }
+
+  /* ─── Phase Sections ────────────────────────── */
+  .phase-section {
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .phase-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .phase-1 .phase-badge { background: var(--phase1-bg); color: var(--phase1); border: 1px solid rgba(59,130,246,0.2); }
+  .phase-2 .phase-badge { background: var(--phase2-bg); color: var(--phase2); border: 1px solid rgba(20,184,166,0.2); }
+  .phase-3 .phase-badge { background: var(--phase3-bg); color: var(--phase3); border: 1px solid rgba(167,139,250,0.2); }
+
+  .phase-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-bright);
+  }
+
+  .phase-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  .phase-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  /* ─── Exercise Cards Grid ───────────────────── */
+  .exercise-flow {
+    display: flex;
+    gap: 12px;
+    position: relative;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .exercise-flow.linear {
+    flex-wrap: nowrap;
+  }
+
+  .exercise-flow.branching {
+    flex-wrap: wrap;
+  }
+
+  /* Flow connectors for Phase 1 */
+  .flow-connector {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .flow-connector svg {
+    width: 28px;
+    height: 24px;
+  }
+
+  /* ─── Exercise Card ─────────────────────────── */
+  .exercise-card {
+    flex-shrink: 0;
+    width: 210px;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .exercise-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+    opacity: 0.7;
+    transition: opacity 0.25s;
+  }
+
+  .exercise-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-3px);
+  }
+
+  .exercise-card:hover::before { opacity: 1; }
+
+  .exercise-card.selected {
+    border-color: var(--border-hover);
+    transform: translateY(-3px);
+  }
+
+  .exercise-card.phase-1-card::before { background: var(--phase1); }
+  .exercise-card.phase-2-card::before { background: var(--phase2); }
+  .exercise-card.phase-3-card::before { background: var(--phase3); }
+
+  .exercise-card.phase-1-card:hover, .exercise-card.phase-1-card.selected {
+    box-shadow: 0 8px 32px var(--phase1-glow), inset 0 1px 0 rgba(59,130,246,0.15);
+  }
+  .exercise-card.phase-2-card:hover, .exercise-card.phase-2-card.selected {
+    box-shadow: 0 8px 32px var(--phase2-glow), inset 0 1px 0 rgba(20,184,166,0.15);
+  }
+  .exercise-card.phase-3-card:hover, .exercise-card.phase-3-card.selected {
+    box-shadow: 0 8px 32px var(--phase3-glow), inset 0 1px 0 rgba(167,139,250,0.15);
+  }
+
+  .exercise-card.dimmed {
+    opacity: 0.2;
+    pointer-events: none;
+    transform: scale(0.97);
+  }
+
+  .card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+
+  .phase-1-card .card-label { color: var(--phase1); }
+  .phase-2-card .card-label { color: var(--phase2); }
+  .phase-3-card .card-label { color: var(--phase3); }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-bright);
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .card-principle {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .card-time {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .card-time svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0.5;
+  }
+
+  .card-wisc {
+    display: flex;
+    gap: 3px;
+  }
+
+  .wisc-tag {
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  .wisc-write { background: rgba(59,130,246,0.15); color: #93c5fd; }
+  .wisc-isolate { background: rgba(168,85,247,0.15); color: #c4b5fd; }
+  .wisc-select { background: rgba(20,184,166,0.15); color: #5eead4; }
+  .wisc-compress { background: rgba(251,191,36,0.15); color: #fde68a; }
+  .wisc-all { background: rgba(248,113,113,0.15); color: #fca5a5; }
+
+  /* Thread indicators on cards */
+  .card-threads {
+    display: flex;
+    gap: 3px;
+    margin-top: 8px;
+  }
+
+  .thread-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+
+  .thread-dot.context { background: var(--thread-context); }
+  .thread-dot.trust { background: var(--thread-trust); }
+  .thread-dot.orchestration { background: var(--thread-orchestration); }
+  .thread-dot.briefing { background: var(--thread-briefing); }
+
+  .thread-dot.highlighted {
+    opacity: 1;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  /* ─── Concept Thread Lines (SVG overlay) ────── */
+  .thread-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  /* ─── Detail Panel ──────────────────────────── */
+  .detail-panel {
+    position: fixed;
+    top: 56px;
+    right: -440px;
+    width: 420px;
+    height: calc(100vh - 56px);
+    background: var(--bg-detail);
+    border-left: 1px solid var(--border);
+    z-index: 90;
+    overflow-y: auto;
+    transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .detail-panel.open {
+    right: 0;
+  }
+
+  .detail-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 2;
+    transition: all 0.2s;
+  }
+
+  .detail-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+  }
+
+  .detail-content {
+    padding: 24px;
+  }
+
+  .detail-phase-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+
+  .detail-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.3;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  .detail-principle {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .detail-section {
+    margin-bottom: 20px;
+  }
+
+  .detail-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .detail-description {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .detail-concepts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .concept-tag {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .detail-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .detail-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .detail-meta-item svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.5;
+  }
+
+  .detail-wisc-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .detail-wisc-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    letter-spacing: 0.3px;
+  }
+
+  .detail-threads {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .detail-thread-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .detail-thread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .detail-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--phase1);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--phase1-bg);
+    border: 1px solid rgba(59,130,246,0.2);
+    transition: all 0.2s;
+    word-break: break-all;
+  }
+
+  .detail-link:hover {
+    background: rgba(59,130,246,0.15);
+  }
+
+  .detail-link svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Navigation within detail ──────────────── */
+  .detail-nav {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .detail-nav-btn {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 11px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .detail-nav-btn:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+  }
+
+  .detail-nav-btn.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .detail-nav-btn.next {
+    justify-content: flex-end;
+  }
+
+  /* ─── Reference Sidebar ─────────────────────── */
+  .ref-section {
+    margin-top: 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .ref-card:hover {
+    border-color: var(--border-hover);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .ref-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+
+  .ref-card-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ref-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 2px;
+  }
+
+  .ref-card-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ─── WISC Legend ───────────────────────────── */
+  .wisc-legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .wisc-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .wisc-legend-letter {
+    font-weight: 700;
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ─── Timing Badge ──────────────────────────── */
+  .timing-info {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .timing-badge {
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .timing-badge strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ─── Thread Legend ─────────────────────────── */
+  .thread-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .thread-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .thread-legend-item:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  .thread-legend-item.active {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+  }
+
+  .thread-line {
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Scrollbar ─────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* ─── Responsive ────────────────────────────── */
+  @media (max-width: 900px) {
+    .canvas-area.detail-open { margin-right: 0; }
+    .detail-panel { width: 100%; right: -100%; }
+    .exercise-card { width: 180px; }
+  }
+
+  /* ─── Fade in animation ─────────────────────── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .exercise-card {
+    animation: fadeInUp 0.4s ease both;
+  }
+
+  .phase-1 .exercise-card:nth-child(1) { animation-delay: 0.05s; }
+  .phase-1 .exercise-card:nth-child(2) { animation-delay: 0.08s; }
+  .phase-1 .exercise-card:nth-child(3) { animation-delay: 0.1s; }
+  .phase-1 .exercise-card:nth-child(4) { animation-delay: 0.14s; }
+  .phase-1 .exercise-card:nth-child(5) { animation-delay: 0.17s; }
+  .phase-1 .exercise-card:nth-child(6) { animation-delay: 0.2s; }
+  .phase-1 .exercise-card:nth-child(7) { animation-delay: 0.23s; }
+  .phase-1 .exercise-card:nth-child(8) { animation-delay: 0.26s; }
+  .phase-1 .exercise-card:nth-child(9) { animation-delay: 0.29s; }
+
+  .phase-2 .exercise-card:nth-child(1) { animation-delay: 0.15s; }
+  .phase-2 .exercise-card:nth-child(2) { animation-delay: 0.2s; }
+  .phase-2 .exercise-card:nth-child(3) { animation-delay: 0.25s; }
+  .phase-2 .exercise-card:nth-child(4) { animation-delay: 0.3s; }
+  .phase-2 .exercise-card:nth-child(5) { animation-delay: 0.35s; }
+
+  .phase-3 .exercise-card:nth-child(1) { animation-delay: 0.25s; }
+  .phase-3 .exercise-card:nth-child(2) { animation-delay: 0.3s; }
+  .phase-3 .exercise-card:nth-child(3) { animation-delay: 0.35s; }
+  .phase-3 .exercise-card:nth-child(4) { animation-delay: 0.4s; }
+
+  /* ─── Pulse animation for active thread ────── */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 4px currentColor; }
+    50% { box-shadow: 0 0 12px currentColor; }
+  }
+
+  .thread-dot.highlighted {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ Header + Filters ═══ -->
+<div class="header">
+  <h1><span>ASwE 2026</span> &mdash; Course Navigator</h1>
+  <div class="header-sep"></div>
+
+  <div class="filters">
+    <span class="filter-label">Phase</span>
+    <div class="filter-group" id="phase-filters">
+      <button class="filter-btn active" data-phase="all" onclick="filterPhase('all')">All</button>
+      <button class="filter-btn" data-phase="1" onclick="filterPhase('1')">Phase 1</button>
+      <button class="filter-btn" data-phase="2" onclick="filterPhase('2')">Phase 2</button>
+      <button class="filter-btn" data-phase="3" onclick="filterPhase('3')">Phase 3</button>
+    </div>
+
+    <span class="filter-label">Thread</span>
+    <div class="filter-group" id="thread-filters">
+      <button class="filter-btn" data-thread="context" onclick="toggleThread('context')">Context</button>
+      <button class="filter-btn" data-thread="trust" onclick="toggleThread('trust')">Trust</button>
+      <button class="filter-btn" data-thread="orchestration" onclick="toggleThread('orchestration')">Orchestration</button>
+      <button class="filter-btn" data-thread="briefing" onclick="toggleThread('briefing')">Briefing</button>
+    </div>
+
+    <span class="filter-label">WISC</span>
+    <div class="filter-group" id="wisc-filters">
+      <button class="filter-btn" data-wisc="write" onclick="toggleWisc('write')">W</button>
+      <button class="filter-btn" data-wisc="isolate" onclick="toggleWisc('isolate')">I</button>
+      <button class="filter-btn" data-wisc="select" onclick="toggleWisc('select')">S</button>
+      <button class="filter-btn" data-wisc="compress" onclick="toggleWisc('compress')">C</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Main Layout ═══ -->
+<div class="main-layout">
+  <div class="canvas-area" id="canvas-area">
+
+    <!-- Timing & WISC Legend -->
+    <div class="timing-info">
+      <div class="timing-badge"><strong>Half-day</strong> ~3.5h &mdash; Warmup + Ex 1-3 + 1 lab</div>
+      <div class="timing-badge"><strong>Full-day</strong> ~7h &mdash; Phase 1 + 2-3 labs + 1 challenge</div>
+      <div class="timing-badge"><strong>Three-day</strong> ~18h &mdash; Everything</div>
+    </div>
+
+    <div class="wisc-legend">
+      <div class="wisc-legend-item"><span class="wisc-legend-letter wisc-write">W</span> Write &mdash; persistent artifacts</div>
+      <div class="wisc-legend-item"><span class="wisc-legend-letter wisc-isolate">I</span> Isolate &mdash; separate contexts</div>
+      <div class="wisc-legend-item"><span class="wisc-legend-letter wisc-select">S</span> Select &mdash; load only needed</div>
+      <div class="wisc-legend-item"><span class="wisc-legend-letter wisc-compress">C</span> Compress &mdash; reduce context</div>
+    </div>
+
+    <!-- ═══ Phase 1 ═══ -->
+    <div class="phase-section phase-1" id="phase-1">
+      <div class="phase-header">
+        <span class="phase-badge">Phase 1</span>
+        <span class="phase-title">Guided Foundations</span>
+        <span class="phase-meta">Linear &bull; ~3.5 hours &bull; Everyone does these in order</span>
+      </div>
+      <div class="phase-subtitle">"Meet the tool &rarr; Understand context &rarr; Develop skepticism &rarr; Learn to brief &rarr; Build something real."</div>
+      <div class="exercise-flow linear" id="phase1-flow"></div>
+    </div>
+
+    <!-- ═══ Phase 2 ═══ -->
+    <div class="phase-section phase-2" id="phase-2">
+      <div class="phase-header">
+        <span class="phase-badge">Phase 2</span>
+        <span class="phase-title">Theme Labs</span>
+        <span class="phase-meta">Non-linear &bull; ~3-4 hours &bull; Choose 2-3 based on your bottleneck</span>
+      </div>
+      <div class="phase-subtitle">"Choose based on your biggest bottleneck right now."</div>
+      <div class="exercise-flow branching" id="phase2-flow"></div>
+    </div>
+
+    <!-- ═══ Phase 3 ═══ -->
+    <div class="phase-section phase-3" id="phase-3">
+      <div class="phase-header">
+        <span class="phase-badge">Phase 3</span>
+        <span class="phase-title">Open Challenges</span>
+        <span class="phase-meta">Self-directed &bull; ~1-1.5 hours &bull; Pick one, apply everything</span>
+      </div>
+      <div class="phase-subtitle">"No step-by-step guidance. You have all the tools &mdash; now use them."</div>
+      <div class="exercise-flow branching" id="phase3-flow"></div>
+    </div>
+
+    <!-- ═══ Reference Materials ═══ -->
+    <div class="ref-section">
+      <div class="phase-header">
+        <span class="phase-badge" style="background:rgba(255,255,255,0.05);color:var(--text-dim);border-color:var(--border);">Reference</span>
+        <span class="phase-title">Quick-Reference Cards</span>
+        <span class="phase-meta">Consult during exercises</span>
+      </div>
+      <div class="ref-grid" id="ref-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- ═══ Detail Panel ═══ -->
+  <div class="detail-panel" id="detail-panel">
+    <button class="detail-close" onclick="closeDetail()" title="Close">&times;</button>
+    <div class="detail-content" id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  Data
+// ═══════════════════════════════════════════════════
+
+const exercises = [
+  // Phase 1
+  {
+    id: 'warmup',
+    phase: 1,
+    label: 'Warmup',
+    title: 'Gilded Rose Kata',
+    time: '30 min',
+    path: 'docs/exercises/warmup/gilded-rose.md',
+    principle: 'Human-AI Collaboration Patterns',
+    description: 'Hands-on introduction to AI pair programming through the classic Gilded Rose refactoring kata. Establishes the testing-first mindset and the Agentic Loop — Gather, Think, Act, Observe, Repeat.',
+    concepts: ['Agentic Loop', '"First Run the Tests"', 'Checkpoints / Rewind', 'Iterative Refactoring'],
+    wisc: [],
+    threads: ['context', 'trust']
+  },
+  {
+    id: 'ex1',
+    phase: 1,
+    label: 'Exercise 1',
+    title: 'Context Engineering Foundations',
+    time: '50 min',
+    path: 'docs/exercises/part-1-fundamentals/exercise-1.md',
+    principle: '"Context is architecture, not configuration"',
+    description: 'Learn why context is architecture, not configuration. Experiment with CLAUDE.md, rules files, and memory to see how context shapes AI output quality. Introduces the WISC framework and Böckeler\'s Taxonomy of who loads context.',
+    concepts: ['Context window as RAM', 'CLAUDE.md', 'Rules files', 'Memory', 'Böckeler\'s Taxonomy', 'WISC framework', 'Plan mode'],
+    wisc: ['write', 'select'],
+    threads: ['context', 'orchestration', 'briefing']
+  },
+  {
+    id: 'ex2',
+    phase: 1,
+    label: 'Exercise 2',
+    title: 'Bug Hunt & Trust Calibration',
+    time: '50 min',
+    path: 'docs/exercises/part-1-fundamentals/exercise-2.md',
+    principle: '"Trust Calibration — AI output requires verification, not acceptance"',
+    description: 'Find and fix 5 planted bugs of increasing difficulty. Learn that 29.6% of plausible AI fixes introduce regressions — verification is non-negotiable. Practice symptom-first debugging.',
+    concepts: ['Symptom-first debugging', 'Failure patterns', 'Silent failures', 'Trust calibration', 'The 29.6% stat'],
+    wisc: [],
+    threads: ['trust']
+  },
+  {
+    id: 'ex3',
+    phase: 1,
+    label: 'Exercise 3',
+    title: 'Briefing & Specification',
+    time: '50 min',
+    path: 'docs/exercises/part-1-fundamentals/exercise-3.md',
+    principle: '"Briefing quality determines output quality"',
+    description: 'Transform vague requests into structured briefs. Learn the Five-Part Task Brief, Osmani\'s six-section CLAUDE.md, three-tier boundaries (Always/Ask First/Never), and create custom skills as reusable briefs.',
+    concepts: ['Five-Part Task Brief', 'Osmani 6-section', 'Three-tier boundaries', 'Skills as briefs', 'AndThen plugin', 'Model selection'],
+    wisc: ['write'],
+    threads: ['context', 'briefing']
+  },
+  {
+    id: 'ex4',
+    phase: 1,
+    label: 'Exercise 4',
+    title: 'Building a Feature',
+    time: '50 min',
+    path: 'docs/exercises/part-1-fundamentals/exercise-4.md',
+    principle: '"Plan → Implement → Verify (The PIV Loop)"',
+    description: 'Apply everything learned to build a real feature (priority filtering). Practice the PIV Loop: Plan in isolation, Implement with fresh context, Verify manually. Introduces MCP servers, the Writer/Reviewer pattern, and headless mode.',
+    concepts: ['PIV Loop', 'Sandwich Principle', 'Session management', 'MCP servers', 'Writer/Reviewer', 'Headless mode'],
+    wisc: ['write', 'isolate', 'select'],
+    threads: ['context', 'trust', 'orchestration', 'briefing']
+  },
+
+  // Phase 2
+  {
+    id: 'labA',
+    phase: 2,
+    label: 'Lab A',
+    title: 'Context Deep Dive',
+    time: '60 min',
+    path: 'docs/exercises/part-2-intermediate/lab-a-context-deep-dive.md',
+    principle: 'Context is probabilistic infrastructure — manage it deliberately',
+    description: 'Audit your context window with /context, experiment with minimal vs full context builds, practice Willison\'s recombination pattern, and master session handoffs with HANDOFF.md. Learn to diagnose and recover from context rot.',
+    concepts: ['/context audit', 'Token thresholds', '/compact', 'HANDOFF.md', 'Recombination pattern', 'Context rot recovery'],
+    wisc: ['select', 'write'],
+    threads: ['context']
+  },
+  {
+    id: 'labB',
+    phase: 2,
+    label: 'Lab B',
+    title: 'Agent Orchestration',
+    time: '60 min',
+    path: 'docs/exercises/part-2-intermediate/lab-b-agent-orchestration.md',
+    principle: 'Orchestration is choosing the right isolation level for each task',
+    description: 'Design and deploy sub-agents in .claude/agents/, use git worktrees for risky experiments, and learn the IndyDevDan decision framework. Measure context impact of different isolation strategies.',
+    concepts: ['Sub-agent design', 'Git worktrees', 'IndyDevDan framework', 'Context hierarchy', 'Parallel agents'],
+    wisc: ['isolate'],
+    threads: ['orchestration']
+  },
+  {
+    id: 'labC',
+    phase: 2,
+    label: 'Lab C',
+    title: 'Verification & Security',
+    time: '50-90 min',
+    path: 'docs/exercises/part-2-intermediate/lab-c-verification-security.md',
+    principle: 'Verification is a design problem, not an afterthought',
+    description: 'Analyze real production failures (Replit DROP TABLE, GetOnStack runaway costs), design permission boundaries, build PreToolUse hooks as guardrails, and understand HITL/HOTL/HOOTL autonomy levels.',
+    concepts: ['Production incidents', 'Hooks', 'Permissions', 'Sandboxing', 'HITL/HOTL/HOOTL', 'Cost limits'],
+    wisc: ['write', 'isolate', 'select', 'compress'],
+    threads: ['trust', 'orchestration']
+  },
+  {
+    id: 'labD',
+    phase: 2,
+    label: 'Lab D',
+    title: 'Structured Workflows',
+    time: '60 min',
+    path: 'docs/exercises/part-2-intermediate/lab-d-structured-workflows.md',
+    principle: 'Structured workflows have overhead — evaluate the trade-off consciously',
+    description: 'Run the full AndThen cycle: clarify → spec → exec-spec → review-gap. Then build a smaller feature with quick-implement. Compare overhead, quality, and confidence to learn when structure pays off.',
+    concepts: ['Spec-Driven Development', 'clarify→spec→exec-spec→review-gap', 'Overhead threshold', 'Spec as context artifact'],
+    wisc: ['write', 'select'],
+    threads: ['context', 'trust', 'briefing']
+  },
+  {
+    id: 'labE',
+    phase: 2,
+    label: 'Lab E',
+    title: 'Tool Building',
+    time: '60 min',
+    path: 'docs/exercises/part-2-intermediate/lab-e-tool-building.md',
+    principle: 'Build tools FOR AI, not just use AI as a tool',
+    description: 'Build composable tools designed for AI invocation: CLI tools with clear help text, slash commands via SKILL.md, and hooks for automated validation. Create a three-layer composability stack.',
+    concepts: ['Tools FOR AI', 'Composability', '"Commandify Everything"', 'Hooks', 'UV single-file scripts', 'Headless mode'],
+    wisc: ['select'],
+    threads: ['orchestration']
+  },
+
+  // Phase 3
+  {
+    id: 'challengeA',
+    phase: 3,
+    label: 'Challenge A',
+    title: 'Greenfield Capstone',
+    time: '90 min',
+    path: 'docs/exercises/part-3-advanced/challenge-a.md',
+    principle: 'Full-stack application building from scratch',
+    description: 'Build a complete application (bookmark manager, habit tracker, recipe book, or your own idea) applying all learned patterns. Must include CLAUDE.md, rules, structured workflow, tests, and a decision log.',
+    concepts: ['Context architecture', 'Spec writing', 'Workflow choice', 'Testing discipline', 'Decision log'],
+    wisc: ['write', 'isolate', 'select', 'compress'],
+    threads: ['context', 'briefing'],
+    tests: 'Context architecture, spec writing, workflow choice, testing discipline'
+  },
+  {
+    id: 'challengeB',
+    phase: 3,
+    label: 'Challenge B',
+    title: 'Alt-Stack Port',
+    time: '90 min',
+    path: 'docs/exercises/part-3-advanced/challenge-b.md',
+    principle: 'Requirements portability across tech stacks',
+    description: 'Port the todo app to a completely new tech stack (Go, Rust, Java, Ruby, etc.) using ONLY the functional requirements doc — no reading the Python source. Tests whether you can specify precisely enough for AI.',
+    concepts: ['Requirements portability', 'CLAUDE.md for new stack', 'Specification precision', 'Architectural decisions'],
+    wisc: ['write', 'select'],
+    threads: ['context', 'briefing'],
+    tests: 'Requirements portability, CLAUDE.md for new stack, specification precision'
+  },
+  {
+    id: 'challengeC',
+    phase: 3,
+    label: 'Challenge C',
+    title: 'Multi-Agent Sprint',
+    time: '90 min',
+    path: 'docs/exercises/part-3-advanced/challenge-c.md',
+    principle: 'Decomposition and multi-agent orchestration',
+    description: 'Design a task decomposition and cost estimate, then orchestrate multiple agents in parallel to build a feature. Measure quality vs. cost tradeoffs and explicitly address Anthropic\'s multi-agent anti-patterns.',
+    concepts: ['Task decomposition', 'Cost estimation', 'Parallel agents', 'Anti-pattern avoidance', 'Quality/cost tradeoff'],
+    wisc: ['isolate', 'write'],
+    threads: ['trust', 'orchestration'],
+    tests: 'Orchestration, cost estimation, task decomposition, anti-pattern avoidance'
+  },
+  {
+    id: 'challengeD',
+    phase: 3,
+    label: 'Challenge D',
+    title: 'Plugin Packaging',
+    time: '60 min',
+    path: 'docs/exercises/part-3-advanced/challenge-d.md',
+    principle: 'Curation, packaging, and partner testing',
+    description: 'Curate your best workshop artifacts into a shareable plugin package with manifest.json, skills, agents, and hooks. Partner-test it for real feedback on what\'s worth sharing.',
+    concepts: ['Curation vs creation', 'Plugin structure', 'manifest.json', 'Partner testing', 'Communication'],
+    wisc: ['write', 'select'],
+    threads: [],
+    tests: 'Curation, packaging, partner testing, communication'
+  }
+];
+
+const threads = {
+  context: {
+    name: 'Context Engineering',
+    color: '#60a5fa',
+    exercises: ['warmup', 'ex1', 'ex3', 'ex4', 'labA', 'labD', 'challengeA', 'challengeB']
+  },
+  trust: {
+    name: 'Trust & Verification',
+    color: '#f87171',
+    exercises: ['warmup', 'ex2', 'ex4', 'labC', 'labD', 'challengeC']
+  },
+  orchestration: {
+    name: 'Orchestration & Delegation',
+    color: '#34d399',
+    exercises: ['ex1', 'ex4', 'labB', 'labC', 'labE', 'challengeC']
+  },
+  briefing: {
+    name: 'Briefing & Specification',
+    color: '#fbbf24',
+    exercises: ['ex1', 'ex3', 'ex4', 'labD', 'challengeA', 'challengeB']
+  }
+};
+
+const references = [
+  { title: 'Briefing Template', desc: 'Five-part brief, Osmani 6-section, three-tier boundaries', path: 'docs/reference/briefing-template.md', icon: '📋', bg: 'rgba(59,130,246,0.1)' },
+  { title: 'Context Economics', desc: 'Token thresholds, instruction compliance, multi-agent ROI', path: 'docs/reference/context-economics.md', icon: '📊', bg: 'rgba(20,184,166,0.1)' },
+  { title: 'Delegation Decision Tree', desc: 'HITL/HOTL/HOOTL, Skills vs Sub-agents vs MCP', path: 'docs/reference/delegation-decision-tree.md', icon: '🌳', bg: 'rgba(167,139,250,0.1)' },
+  { title: 'Failure Patterns', desc: '10 named patterns + WISC diagnostic lens', path: 'docs/reference/failure-patterns.md', icon: '⚠', bg: 'rgba(248,113,113,0.1)' },
+  { title: 'PIV Loop', desc: 'Plan→Implement→Verify, Sandwich Principle', path: 'docs/reference/piv-loop.md', icon: '🔄', bg: 'rgba(251,191,36,0.1)' },
+  { title: 'Trust Spectrum', desc: 'Vibe coding → agentic engineering, METR data', path: 'docs/reference/trust-spectrum.md', icon: '🎯', bg: 'rgba(236,72,153,0.1)' },
+  { title: 'Agentic Patterns', desc: 'Willison\'s 10 patterns quick reference', path: 'docs/reference/agentic-patterns.md', icon: '🧩', bg: 'rgba(52,211,153,0.1)' },
+  { title: 'Spec-Driven Dev', desc: 'SDD tools (AndThen, PRP, Spec Kit, BMAD)', path: 'docs/reference/spec-driven-development.md', icon: '📐', bg: 'rgba(99,102,241,0.1)' }
+];
+
+// ═══════════════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════════════
+
+const state = {
+  phaseFilter: 'all',
+  activeThread: null,
+  activeWisc: null,
+  selectedExercise: null
+};
+
+// ═══════════════════════════════════════════════════
+//  Render
+// ═══════════════════════════════════════════════════
+
+function renderCards() {
+  const phase1 = exercises.filter(e => e.phase === 1);
+  const phase2 = exercises.filter(e => e.phase === 2);
+  const phase3 = exercises.filter(e => e.phase === 3);
+
+  renderPhaseFlow('phase1-flow', phase1, 1, true);
+  renderPhaseFlow('phase2-flow', phase2, 2, false);
+  renderPhaseFlow('phase3-flow', phase3, 3, false);
+  renderReferences();
+}
+
+function renderPhaseFlow(containerId, items, phase, linear) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  items.forEach((ex, i) => {
+    // Add connector arrow between cards in linear flow
+    if (linear && i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'flow-connector';
+      conn.innerHTML = `<svg viewBox="0 0 28 24"><path d="M4 12 L20 12" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/><polygon points="18,8 24,12 18,16" fill="rgba(255,255,255,0.15)"/></svg>`;
+      container.appendChild(conn);
+    }
+
+    const card = createCard(ex, phase);
+    container.appendChild(card);
+  });
+}
+
+function createCard(ex, phase) {
+  const card = document.createElement('div');
+  card.className = `exercise-card phase-${phase}-card`;
+  card.dataset.id = ex.id;
+  card.onclick = () => selectExercise(ex.id);
+
+  // Determine visibility
+  const dimmed = isDimmed(ex);
+  if (dimmed) card.classList.add('dimmed');
+  if (state.selectedExercise === ex.id) card.classList.add('selected');
+
+  // WISC tags
+  let wiscHtml = '';
+  if (ex.wisc.length > 0) {
+    wiscHtml = '<div class="card-wisc">' + ex.wisc.map(w => {
+      const label = w === 'compress' ? 'C' : w === 'write' ? 'W' : w === 'isolate' ? 'I' : w === 'select' ? 'S' : w.charAt(0).toUpperCase();
+      return `<span class="wisc-tag wisc-${w}">${label}</span>`;
+    }).join('') + '</div>';
+  } else if (phase === 2) {
+    wiscHtml = '<div class="card-wisc"><span class="wisc-tag wisc-all">ALL</span></div>';
+  }
+
+  // Thread dots
+  const threadHtml = ex.threads.length > 0
+    ? '<div class="card-threads">' + ex.threads.map(t => {
+        const hl = state.activeThread === t ? ' highlighted' : '';
+        return `<span class="thread-dot ${t}${hl}" title="${threads[t].name}"></span>`;
+      }).join('') + '</div>'
+    : '';
+
+  card.innerHTML = `
+    <div class="card-label">${ex.label}</div>
+    <div class="card-title">${ex.title}</div>
+    <div class="card-principle">${ex.principle}</div>
+    <div class="card-footer">
+      <div class="card-time">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+        ${ex.time}
+      </div>
+      ${wiscHtml}
+    </div>
+    ${threadHtml}
+  `;
+
+  return card;
+}
+
+function isDimmed(ex) {
+  // Phase filter
+  if (state.phaseFilter !== 'all' && ex.phase !== parseInt(state.phaseFilter)) return true;
+
+  // Thread filter
+  if (state.activeThread && !ex.threads.includes(state.activeThread)) return true;
+
+  // WISC filter
+  if (state.activeWisc) {
+    if (state.activeWisc === 'all') {
+      if (ex.wisc.length < 4) return true;
+    } else {
+      if (!ex.wisc.includes(state.activeWisc)) return true;
+    }
+  }
+
+  return false;
+}
+
+function renderReferences() {
+  const grid = document.getElementById('ref-grid');
+  grid.innerHTML = references.map(ref => `
+    <a class="ref-card" href="${ref.path}" title="${ref.path}">
+      <div class="ref-icon" style="background:${ref.bg}">${ref.icon}</div>
+      <div class="ref-card-text">
+        <div class="ref-card-title">${ref.title}</div>
+        <div class="ref-card-desc">${ref.desc}</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  Detail Panel
+// ═══════════════════════════════════════════════════
+
+function selectExercise(id) {
+  if (state.selectedExercise === id) {
+    closeDetail();
+    return;
+  }
+
+  state.selectedExercise = id;
+  const ex = exercises.find(e => e.id === id);
+  if (!ex) return;
+
+  const panel = document.getElementById('detail-panel');
+  const content = document.getElementById('detail-content');
+  const area = document.getElementById('canvas-area');
+
+  // Phase colors
+  const phaseColors = { 1: 'var(--phase1)', 2: 'var(--phase2)', 3: 'var(--phase3)' };
+  const phaseBgs = { 1: 'var(--phase1-bg)', 2: 'var(--phase2-bg)', 3: 'var(--phase3-bg)' };
+  const phaseNames = { 1: 'Phase 1 — Foundations', 2: 'Phase 2 — Theme Labs', 3: 'Phase 3 — Challenges' };
+
+  // WISC tags
+  let wiscHtml = '';
+  if (ex.wisc.length > 0) {
+    wiscHtml = `
+      <div class="detail-section">
+        <div class="detail-section-title">WISC Strategies</div>
+        <div class="detail-wisc-tags">
+          ${ex.wisc.map(w => {
+            const labels = { write: 'WRITE — persistent artifacts', isolate: 'ISOLATE — separate contexts', select: 'SELECT — load only needed', compress: 'COMPRESS — reduce context' };
+            return `<span class="detail-wisc-tag wisc-${w}">${labels[w]}</span>`;
+          }).join('')}
+        </div>
+      </div>`;
+  } else if (ex.phase === 2) {
+    wiscHtml = `
+      <div class="detail-section">
+        <div class="detail-section-title">WISC Strategies</div>
+        <div class="detail-wisc-tags">
+          <span class="detail-wisc-tag wisc-all">ALL STRATEGIES</span>
+        </div>
+      </div>`;
+  }
+
+  // Thread indicators
+  let threadsHtml = '';
+  if (ex.threads.length > 0) {
+    threadsHtml = `
+      <div class="detail-section">
+        <div class="detail-section-title">Concept Threads</div>
+        <div class="detail-threads">
+          ${ex.threads.map(t => `
+            <div class="detail-thread-item">
+              <span class="detail-thread-dot" style="background:${threads[t].color}"></span>
+              ${threads[t].name}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Tests (for Phase 3)
+  let testsHtml = '';
+  if (ex.tests) {
+    testsHtml = `
+      <div class="detail-section">
+        <div class="detail-section-title">What It Tests</div>
+        <div class="detail-description">${ex.tests}</div>
+      </div>`;
+  }
+
+  // Nav buttons
+  const allIds = exercises.map(e => e.id);
+  const idx = allIds.indexOf(id);
+  const prevEx = idx > 0 ? exercises[idx - 1] : null;
+  const nextEx = idx < exercises.length - 1 ? exercises[idx + 1] : null;
+
+  content.innerHTML = `
+    <div class="detail-phase-badge" style="background:${phaseBgs[ex.phase]};color:${phaseColors[ex.phase]};border:1px solid ${phaseColors[ex.phase]}33">
+      ${phaseNames[ex.phase]}
+    </div>
+    <div class="detail-title">${ex.label}: ${ex.title}</div>
+    <div class="detail-principle">${ex.principle}</div>
+
+    <div class="detail-meta">
+      <div class="detail-meta-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+        ${ex.time}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Description</div>
+      <div class="detail-description">${ex.description}</div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Key Concepts</div>
+      <div class="detail-concepts">
+        ${ex.concepts.map(c => `<span class="concept-tag">${c}</span>`).join('')}
+      </div>
+    </div>
+
+    ${wiscHtml}
+    ${threadsHtml}
+    ${testsHtml}
+
+    <div class="detail-section">
+      <div class="detail-section-title">Exercise File</div>
+      <a class="detail-link" href="${ex.path}">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/></svg>
+        ${ex.path}
+      </a>
+    </div>
+
+    <div class="detail-nav">
+      <button class="detail-nav-btn ${prevEx ? '' : 'disabled'}" onclick="${prevEx ? `selectExercise('${prevEx.id}')` : ''}">
+        &larr; ${prevEx ? prevEx.label : ''}
+      </button>
+      <button class="detail-nav-btn next ${nextEx ? '' : 'disabled'}" onclick="${nextEx ? `selectExercise('${nextEx.id}')` : ''}">
+        ${nextEx ? nextEx.label : ''} &rarr;
+      </button>
+    </div>
+  `;
+
+  panel.classList.add('open');
+  area.classList.add('detail-open');
+  updateCardStates();
+}
+
+function closeDetail() {
+  state.selectedExercise = null;
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('canvas-area').classList.remove('detail-open');
+  updateCardStates();
+}
+
+// Lightweight update — toggles classes on existing cards without rebuilding DOM
+function updateCardStates() {
+  document.querySelectorAll('.exercise-card').forEach(card => {
+    const id = card.dataset.id;
+    const ex = exercises.find(e => e.id === id);
+    if (!ex) return;
+
+    card.classList.toggle('selected', state.selectedExercise === id);
+    card.classList.toggle('dimmed', isDimmed(ex));
+
+    // Update thread dot highlights
+    card.querySelectorAll('.thread-dot').forEach(dot => {
+      const isThread = [...dot.classList].find(c => threads[c]);
+      if (isThread) {
+        dot.classList.toggle('highlighted', state.activeThread === isThread);
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  Filters
+// ═══════════════════════════════════════════════════
+
+function filterPhase(phase) {
+  state.phaseFilter = phase;
+
+  document.querySelectorAll('#phase-filters .filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.phase === phase);
+  });
+
+  // Show/hide phase sections
+  document.getElementById('phase-1').style.display = (phase === 'all' || phase === '1') ? '' : 'none';
+  document.getElementById('phase-2').style.display = (phase === 'all' || phase === '2') ? '' : 'none';
+  document.getElementById('phase-3').style.display = (phase === 'all' || phase === '3') ? '' : 'none';
+
+  updateCardStates();
+}
+
+function toggleThread(thread) {
+  state.activeThread = state.activeThread === thread ? null : thread;
+
+  document.querySelectorAll('#thread-filters .filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.thread === state.activeThread);
+  });
+
+  updateCardStates();
+}
+
+function toggleWisc(wisc) {
+  state.activeWisc = state.activeWisc === wisc ? null : wisc;
+
+  document.querySelectorAll('#wisc-filters .filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.wisc === state.activeWisc);
+  });
+
+  updateCardStates();
+}
+
+// ═══════════════════════════════════════════════════
+//  Keyboard nav
+// ═══════════════════════════════════════════════════
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeDetail();
+    return;
+  }
+
+  if (!state.selectedExercise) return;
+
+  const allIds = exercises.map(ex => ex.id);
+  const idx = allIds.indexOf(state.selectedExercise);
+
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (idx < allIds.length - 1) selectExercise(allIds[idx + 1]);
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (idx > 0) selectExercise(allIds[idx - 1]);
+  }
+});
+
+// ═══════════════════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════════════════
+
+renderCards();
+</script>
+</body>
+</html>

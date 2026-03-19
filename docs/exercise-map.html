@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1400">
+<title>Agentic SWE 2026 — Exercise Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181b25;
+    --surface-2: #1e2130;
+    --border: #2a2d3a;
+    --border-light: #353849;
+    --text: #e8eaf0;
+    --text-muted: #8b8fa3;
+    --text-dim: #5c6078;
+
+    --phase1: #6366f1;
+    --phase1-soft: #818cf822;
+    --phase1-glow: #6366f133;
+    --phase1-text: #a5b4fc;
+    --phase1-border: #4f46e5;
+
+    --phase2: #10b981;
+    --phase2-soft: #10b98122;
+    --phase2-glow: #10b98133;
+    --phase2-text: #6ee7b7;
+    --phase2-border: #059669;
+
+    --phase3: #f59e0b;
+    --phase3-soft: #f59e0b22;
+    --phase3-glow: #f59e0b33;
+    --phase3-text: #fcd34d;
+    --phase3-border: #d97706;
+
+    --wisc-w: #f472b6;
+    --wisc-i: #a78bfa;
+    --wisc-s: #38bdf8;
+    --wisc-c: #34d399;
+
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    width: 1400px;
+    min-height: 900px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Subtle grid texture */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    min-height: 900px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .main {
+    padding: 32px 40px 28px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 2px;
+  }
+
+  .header h1 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .header h1 span {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-left: 10px;
+  }
+
+  .narrative {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    border-left: 2px solid var(--border);
+    padding-left: 12px;
+    margin-top: -4px;
+  }
+
+  /* ─── Phase sections ─── */
+  .phase {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .phase-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .phase-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .phase-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .phase-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  /* ─── Phase 1: Linear chain ─── */
+  .chain {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .chain-card {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .chain-card.warmup {
+    flex: 0.85;
+  }
+
+  .p1 .chain-card {
+    border-top: 2px solid var(--phase1-border);
+    background: linear-gradient(180deg, var(--phase1-soft) 0%, var(--surface) 60%);
+  }
+
+  .chain-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 2px;
+    color: var(--phase1);
+    font-size: 16px;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .card-title {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .card-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+
+  .card-desc {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    line-height: 1.35;
+  }
+
+  /* ─── Phase 2: Lab grid ─── */
+  .choose-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+
+  .choose-label .arrow-fan {
+    display: inline-flex;
+    gap: 1px;
+    font-size: 10px;
+    opacity: 0.4;
+  }
+
+  .lab-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .lab-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 12px;
+    position: relative;
+  }
+
+  .p2 .lab-card {
+    border-left: 2px solid var(--phase2-border);
+    background: linear-gradient(90deg, var(--phase2-soft) 0%, var(--surface) 50%);
+  }
+
+  .lab-letter {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  /* ─── Phase 3: Challenge grid ─── */
+  .challenge-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .challenge-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 12px;
+  }
+
+  .p3 .challenge-card {
+    border-left: 2px solid var(--phase3-border);
+    background: linear-gradient(90deg, var(--phase3-soft) 0%, var(--surface) 50%);
+  }
+
+  /* ─── Timing bar ─── */
+  .timing-bar {
+    display: flex;
+    gap: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 26px;
+    border: 1px solid var(--border);
+    margin-top: 2px;
+  }
+
+  .timing-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    position: relative;
+  }
+
+  .timing-segment.t1 {
+    flex: 3.5;
+    background: var(--phase1-glow);
+    color: var(--phase1-text);
+    border-right: 1px solid var(--border);
+  }
+
+  .timing-segment.t2 {
+    flex: 3.5;
+    background: var(--phase2-glow);
+    color: var(--phase2-text);
+    border-right: 1px solid var(--border);
+  }
+
+  .timing-segment.t3 {
+    flex: 11;
+    background: var(--phase3-glow);
+    color: var(--phase3-text);
+  }
+
+  /* ─── Sidebar ─── */
+  .sidebar {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 32px 18px 28px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sidebar-title {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .wisc-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.6;
+  }
+
+  .wisc-letter {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .wisc-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    width: 62px;
+    flex-shrink: 0;
+  }
+
+  .wisc-items {
+    color: var(--text-dim);
+    font-size: 9px;
+  }
+
+  .ref-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .ref-item {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--text-dim);
+    padding: 4px 7px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    line-height: 1.3;
+  }
+
+  .ref-item::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 1px;
+    background: var(--border-light);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* ─── Separator ─── */
+  .sep {
+    height: 1px;
+    background: var(--border);
+    margin: 0;
+  }
+
+  .sidebar .sep {
+    margin: 4px 0;
+  }
+
+  /* ─── Color utilities ─── */
+  .c1 { color: var(--phase1-text); }
+  .c2 { color: var(--phase2-text); }
+  .c3 { color: var(--phase3-text); }
+  .bg1 { background: var(--phase1); }
+  .bg2 { background: var(--phase2); }
+  .bg3 { background: var(--phase3); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="main">
+
+    <!-- Header -->
+    <div>
+      <div class="header">
+        <h1>Exercise Map<span>AGENTIC SWE 2026</span></h1>
+      </div>
+      <div class="narrative">
+        Meet the tool &rarr; Understand context &rarr; Develop skepticism &rarr; Learn to brief &rarr; Build something real &rarr; Go deep on what matters &rarr; Apply independently
+      </div>
+    </div>
+
+    <!-- Phase 1 -->
+    <div class="phase p1">
+      <div class="phase-header">
+        <div class="phase-badge bg1">1</div>
+        <div class="phase-name c1">Guided Foundations</div>
+        <div class="phase-dot"></div>
+        <div class="phase-desc">Linear &mdash; everyone does these in order</div>
+      </div>
+      <div class="chain">
+        <div class="chain-card warmup">
+          <div class="card-title">Warmup: Gilded Rose</div>
+          <div class="card-time">25 min</div>
+          <div class="card-desc">Agentic loop, checkpoints,<br>"First Run the Tests"</div>
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-card">
+          <div class="card-title">Ex 1: Context Engineering</div>
+          <div class="card-time">45 min</div>
+          <div class="card-desc">CLAUDE.md, rules files,<br>@ imports, WISC framework</div>
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-card">
+          <div class="card-title">Ex 2: Bug Hunt</div>
+          <div class="card-time">45 min</div>
+          <div class="card-desc">Trust calibration, 5 planted<br>bugs, failure patterns</div>
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-card">
+          <div class="card-title">Ex 3: Briefing &amp; Spec</div>
+          <div class="card-time">45 min</div>
+          <div class="card-desc">Five-Part Brief, skills,<br>structured workflows</div>
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-card">
+          <div class="card-title">Ex 4: Feature Build</div>
+          <div class="card-time">45 min</div>
+          <div class="card-desc">PIV Loop, MCP servers,<br>PR Contract</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase p2">
+      <div class="phase-header">
+        <div class="phase-badge bg2">2</div>
+        <div class="phase-name c2">Theme Labs</div>
+        <div class="phase-dot"></div>
+        <div class="phase-desc">Non-linear &mdash; choose 2-3 labs based on your priorities</div>
+      </div>
+      <div class="choose-label">
+        <span class="arrow-fan">&darr; &darr; &darr; &darr; &darr;</span>
+        <span>choose your path</span>
+      </div>
+      <div class="lab-grid">
+        <div class="lab-card">
+          <div class="lab-letter c2">Lab A</div>
+          <div class="card-title">Context Deep Dive</div>
+          <div class="card-time">60 min</div>
+          <div class="card-desc">Token thresholds, /compact,<br>HANDOFF.md, recombination</div>
+        </div>
+        <div class="lab-card">
+          <div class="lab-letter c2">Lab B</div>
+          <div class="card-title">Agent Orchestration</div>
+          <div class="card-time">60 min</div>
+          <div class="card-desc">Sub-agents, worktrees,<br>delegation framework</div>
+        </div>
+        <div class="lab-card">
+          <div class="lab-letter c2">Lab C</div>
+          <div class="card-title">Verification &amp; Security</div>
+          <div class="card-time">50-90 min</div>
+          <div class="card-desc">Hooks, permissions,<br>sandboxing, incidents</div>
+        </div>
+        <div class="lab-card">
+          <div class="lab-letter c2">Lab D</div>
+          <div class="card-title">Structured Workflows</div>
+          <div class="card-time">60 min</div>
+          <div class="card-desc">clarify &rarr; spec &rarr;<br>exec-spec &rarr; review-gap</div>
+        </div>
+        <div class="lab-card">
+          <div class="lab-letter c2">Lab E</div>
+          <div class="card-title">Tool Building</div>
+          <div class="card-time">60 min</div>
+          <div class="card-desc">CLI tools for AI, commands,<br>headless mode, hooks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase p3">
+      <div class="phase-header">
+        <div class="phase-badge bg3">3</div>
+        <div class="phase-name c3">Open Challenges</div>
+        <div class="phase-dot"></div>
+        <div class="phase-desc">Self-directed &mdash; pick one challenge</div>
+      </div>
+      <div class="choose-label">
+        <span class="arrow-fan">&darr; &darr; &darr; &darr;</span>
+        <span>pick one</span>
+      </div>
+      <div class="challenge-grid">
+        <div class="challenge-card">
+          <div class="lab-letter c3">Challenge A</div>
+          <div class="card-title">Greenfield Capstone</div>
+          <div class="card-time">90 min</div>
+          <div class="card-desc">Build a new app from scratch using everything learned</div>
+        </div>
+        <div class="challenge-card">
+          <div class="lab-letter c3">Challenge B</div>
+          <div class="card-title">Alt-Stack Port</div>
+          <div class="card-time">90 min</div>
+          <div class="card-desc">Port to new tech stack using only requirements</div>
+        </div>
+        <div class="challenge-card">
+          <div class="lab-letter c3">Challenge C</div>
+          <div class="card-title">Multi-Agent Sprint</div>
+          <div class="card-time">90 min</div>
+          <div class="card-desc">Decompose a feature across agent teams</div>
+        </div>
+        <div class="challenge-card">
+          <div class="lab-letter c3">Challenge D</div>
+          <div class="card-title">Plugin Package</div>
+          <div class="card-time">60 min</div>
+          <div class="card-desc">Curate &amp; share workshop artifacts as a plugin</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timing -->
+    <div>
+      <div class="timing-bar">
+        <div class="timing-segment t1">Half-day &middot; 3.5h &middot; Phase 1</div>
+        <div class="timing-segment t2">+ Phase 2 &rarr; Full-day &middot; 7h</div>
+        <div class="timing-segment t3">+ Phase 3 &rarr; Three-day &middot; 18h</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">WISC Framework</div>
+      <div class="wisc-row">
+        <span class="wisc-letter" style="background:var(--wisc-w)">W</span>
+        <span class="wisc-label">Write</span>
+        <span class="wisc-items">Ex1 Ex3 Ex4 LabD</span>
+      </div>
+      <div class="wisc-row">
+        <span class="wisc-letter" style="background:var(--wisc-i)">I</span>
+        <span class="wisc-label">Isolate</span>
+        <span class="wisc-items">Ex4 LabB ChC</span>
+      </div>
+      <div class="wisc-row">
+        <span class="wisc-letter" style="background:var(--wisc-s)">S</span>
+        <span class="wisc-label">Select</span>
+        <span class="wisc-items">Ex1 LabA LabE</span>
+      </div>
+      <div class="wisc-row">
+        <span class="wisc-letter" style="background:var(--wisc-c)">C</span>
+        <span class="wisc-label">Compress</span>
+        <span class="wisc-items">LabA</span>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Reference Cards</div>
+      <div class="ref-list">
+        <div class="ref-item">Context Economics</div>
+        <div class="ref-item">Failure Patterns</div>
+        <div class="ref-item">Briefing Template</div>
+        <div class="ref-item">PIV Loop</div>
+        <div class="ref-item">Trust Spectrum</div>
+        <div class="ref-item">Delegation Decision Tree</div>
+        <div class="ref-item">Agentic Patterns</div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Key Concepts</div>
+      <div style="font-family:var(--font-mono);font-size:9.5px;color:var(--text-dim);line-height:1.7">
+        Context Engineering<br>
+        Trust Calibration<br>
+        PIV Loop<br>
+        Symptom-First Debugging<br>
+        Three-Attempt Framing<br>
+        Annotation Cycle<br>
+        HITL / HOTL / HOOTL
+      </div>
+    </div>
+
+    <div style="margin-top:auto">
+      <div class="sep" style="margin-bottom:10px"></div>
+      <div style="font-family:var(--font-mono);font-size:8.5px;color:var(--text-dim);line-height:1.5;letter-spacing:0.02em">
+        Agentic Software Engineering<br>with Claude Code &middot; 2026
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

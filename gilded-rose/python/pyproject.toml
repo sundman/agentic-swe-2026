@@ -1,0 +1,9 @@
+[project]
+name = "gilded-rose"
+version = "0.1.0"
+description = "Gilded Rose refactoring kata"
+requires-python = ">=3.11"
+dependencies = [
+    "approvaltests>=17.2.1",
+    "pytest>=9.0.2",
+]
