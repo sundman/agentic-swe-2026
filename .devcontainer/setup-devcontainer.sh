@@ -10,6 +10,7 @@ npm install -g @anthropic-ai/claude-code
 # Install todo-app dependencies
 echo "Installing todo-app dependencies..."
 cd todo-app
+rm -rf .venv
 uv sync
 cd ..
 
